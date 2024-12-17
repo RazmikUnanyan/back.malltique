@@ -1,3 +1,3 @@
-from django.contrib import admin # noqa
+from django.contrib import admin # type: ignore # noqa
 
 # Register your models here.

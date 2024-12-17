@@ -12,7 +12,7 @@ class TestModels(TestCase):
     def test_email_user_with_successfull(self):
         """Test creating a user with an email is successfull."""
         email = "test@example.com"
-        password = "testpass"
+        password = "testpass11!"
         user = get_user_model().objects.create_user(
             email=email,
             password=password

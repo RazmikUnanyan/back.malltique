@@ -16,13 +16,13 @@ class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         """Create, save and return a new user."""
         user = self.model(email=email, **extra_fields)
-        user.set_password(password=password)
+        user.set_password(password)
         user.save(using=self._db)
 
         return user
 
 
-class User(AbstractBaseUser, BaseUserManager, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin):
     """User model"""
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
