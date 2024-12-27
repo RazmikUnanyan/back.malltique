@@ -1,7 +1,7 @@
 """
-URL mapping for the recipe app.
+URL mapping for the product app.
 """
-# This docstring explains that this file contains the URL configurations for the recipe app.
+# This docstring explains that this file contains the URL configurations for the product app.
 
 from django.urls import (
     path,
@@ -12,17 +12,17 @@ from django.urls import (
 from rest_framework.routers import DefaultRouter
 # Importing `DefaultRouter` from Django REST Framework to automatically generate URL routes for viewsets.
 
-from recipe import views
-# Importing views from the `recipe` app to link them to the router.
+from product import views
+# Importing views from the `product` app to link them to the router.
 
 router = DefaultRouter()
 # Creating an instance of the DefaultRouter for automatic URL routing.
 
-router.register('recipes', views.RecipeViewSet)
-# Registering the `RecipeViewSet` with the router under the `recipes` endpoint.
+router.register('product', views.ProductViewSet)
+# Registering the `ProductViewSet` with the router under the `product` endpoint.
 
-app_name = 'recipe'
-# Defining the app namespace for the `recipe` app, useful for namespaced URL reversing.
+app_name = 'product'
+# Defining the app namespace for the `product` app, useful for namespaced URL reversing.
 
 urlpatterns = [
     path('', include(router.urls))

@@ -46,7 +46,7 @@ class User(AbstractBaseUser, PermissionsMixin):  # Создаем пользов
     USERNAME_FIELD = 'email'  # Указываем, что для аутентификации используется email.
 
 
-class Recipe(models.Model):  # Модель для хранения рецептов.
+class Product(models.Model):  # Модель для хранения рецептов.
     """Объекты рецептов."""
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,  # Связываем рецепт с пользователем через кастомную модель пользователя.
