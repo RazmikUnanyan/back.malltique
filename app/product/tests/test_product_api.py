@@ -2,9 +2,10 @@
 Test for product APIs.
 """
 from decimal import Decimal  # Импортируем модуль для работы с числами с фиксированной точностью.
+from itertools import product
 
 from django.contrib.auth import get_user_model  # Импорт функции для получения текущей модели пользователя.
-from django.template.defaultfilters import title  # Импорт фильтра для форматирования строк.
+from django.template.defaultfilters import title
 from django.test import TestCase  # Импорт класса для создания тестов.
 from django.urls import reverse  # Импорт функции для генерации URL-адресов.
 
@@ -46,6 +47,11 @@ def create_product(user, **params):
     return product  # Возвращаем созданный рецепт.
 
 
+def create_user(**params):
+    """Create and return new user"""
+    return get_user_model().objects.create_user(**params)
+
+
 # Класс тестов для неавторизованных запросов к API рецептов.
 class PublicProductAPITests(TestCase):
     """Test UNAUTHORIZED req"""
@@ -70,10 +76,7 @@ class PrivateProductAPITests(TestCase):
         # Инициализируем клиент API для тестирования.
         self.client = APIClient()
         # Создаем пользователя для тестирования.
-        self.user = get_user_model().objects.create_user(
-            'test@example.com',  # Email пользователя.
-            'eeeepass',  # Пароль пользователя.
-        )
+        self.user = create_user(email='test@example.com', password='eeeepass')
         # Аутентифицируем пользователя в API-клиенте.
         self.client.force_authenticate(self.user)
 
@@ -98,10 +101,7 @@ class PrivateProductAPITests(TestCase):
     def test_product_limited_to_user(self):
         """Test list of product is limited to authenticated user."""
         # Создаем другого пользователя.
-        other_user = get_user_model().objects.create_user(
-            'Res@example.com',  # Email другого пользователя.
-            'testpasstse',  # Пароль другого пользователя.
-        )
+        other_user = create_user(email='Res@example.com', password='testpasstse')
         # Создаем рецепт для другого пользователя.
         create_product(user=other_user)
         # Создаем рецепт для текущего пользователя.
@@ -145,6 +145,25 @@ class PrivateProductAPITests(TestCase):
         for k, v in payload.items():
             self.assertEqual(getattr(product, k), v)
         self.assertEqual(product.user, self.user)
+
+    def test_partial_update(self):
+        original_link = 'https://fmalltique.com'
+        product = create_product(
+            user=self.user,
+            title='title',
+            link=original_link
+        )
+
+        payload = {'title': "new product"}
+        url=detail_url(product.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        product.refresh_from_db()
+        self.assertEqual(product.title, payload['title'])
+        self.assertEqual(product.link, original_link)
+        self.assertEqual(product.user, self.user)
+
 
 
 
