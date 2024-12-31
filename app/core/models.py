@@ -1,74 +1,77 @@
 """
 Database models.
 """
-from django.conf import settings  # Импорт настроек проекта Django.
-from django.db import models  # Импортируем базовый модуль для работы с моделями.
-from django.contrib.auth.models import (  # Импортируем базовые классы для работы с пользователями.
-    AbstractBaseUser,  # Базовый класс для пользовательской модели.
-    BaseUserManager,  # Менеджер для управления пользовательскими объектами.
-    PermissionsMixin,  # Добавляет поддержку разрешений и групп.
+from django.conf import settings  # Import project settings for Django.
+from django.db import models  # Import base module for working with models.
+from django.contrib.auth.models import (  # Import base classes for working with users.
+    AbstractBaseUser,  # Base class for custom user models.
+    BaseUserManager,  # Manager for handling user objects.
+    PermissionsMixin,  # Adds support for permissions and groups.
 )
-from django.db.models import CharField  # Импортируем поле для текстовых данных.
+from django.db.models import CharField  # Import a field for text data.
 
 
-class UserManager(BaseUserManager):  # Кастомный менеджер для модели пользователя.
-    """Менеджер для управления пользователями."""
+class UserManager(BaseUserManager):  # Custom manager for the User model.
+    """Manager for handling user objects."""
 
     def create_user(self, email, password=None, **extra_fields):
-        """Создает, сохраняет и возвращает нового пользователя."""
-        if not email:  # Проверяем, указан ли email.
-            raise ValueError('У пользователя должен быть email.')  # Выбрасываем ошибку, если email отсутствует.
-        user = self.model(email=self.normalize_email(email), **extra_fields)  # Создаем экземпляр модели с нормализованным email.
-        user.set_password(password)  # Устанавливаем пароль.
-        user.save(using=self._db)  # Сохраняем пользователя в базу данных.
+        """Creates, saves, and returns a new user."""
+        if not email:  # Check if an email is provided.
+            raise ValueError('A user must have an email address.')  # Raise an error if email is missing.
+        user = self.model(email=self.normalize_email(email), **extra_fields)  # Create a model instance with a normalized email.
+        user.set_password(password)  # Set the user's password.
+        user.save(using=self._db)  # Save the user to the database.
 
-        return user  # Возвращаем созданного пользователя.
+        return user  # Return the created user.
 
     def create_superuser(self, email, password):
-        """Создает и возвращает суперпользователя."""
-        user = self.create_user(email, password)  # Создаем обычного пользователя.
-        user.is_staff = True  # Делаем его сотрудником (имеющим доступ к админке).
-        user.is_superuser = True  # Назначаем статус суперпользователя.
-        user.save(using=self._db)  # Сохраняем изменения в базе данных.
+        """Creates and returns a superuser."""
+        user = self.create_user(email, password)  # Create a regular user.
+        user.is_staff = True  # Grant staff status (admin access).
+        user.is_superuser = True  # Grant superuser status.
+        user.save(using=self._db)  # Save changes to the database.
 
-        return user  # Возвращаем суперпользователя.
-
-
-class User(AbstractBaseUser, PermissionsMixin):  # Создаем пользовательскую модель, наследуем базовый пользовательский класс.
-    """Модель пользователя в системе."""
-    email = models.EmailField(max_length=255, unique=True)  # Поле email, обязательное и уникальное.
-    name = models.CharField(max_length=255)  # Поле имени пользователя.
-    is_active = models.BooleanField(default=True)  # Статус активности пользователя.
-    is_staff = models.BooleanField(default=False)  # Является ли пользователь сотрудником (доступ к админке).
-
-    objects = UserManager()  # Подключаем кастомный менеджер пользователей.
-
-    USERNAME_FIELD = 'email'  # Указываем, что для аутентификации используется email.
+        return user  # Return the superuser.
 
 
-class Product(models.Model):  # Модель для хранения рецептов.
-    """Объекты рецептов."""
+class User(AbstractBaseUser, PermissionsMixin):  # Create a custom user model inheriting the base user class.
+    """User model in the system."""
+    email = models.EmailField(max_length=255, unique=True)  # Email field, required and unique.
+    name = models.CharField(max_length=255)  # Name field for the user.
+    is_active = models.BooleanField(default=True)  # User active status.
+    is_staff = models.BooleanField(default=False)  # Determines if the user has staff privileges (admin access).
+
+    objects = UserManager()  # Attach the custom user manager.
+
+    USERNAME_FIELD = 'email'  # Specify that email is used for authentication.
+
+
+class Product(models.Model):  # Model for storing product data.
+    """Product objects."""
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,  # Связываем рецепт с пользователем через кастомную модель пользователя.
-        on_delete=models.CASCADE,  # Если пользователь удален, все связанные рецепты удаляются.
+        settings.AUTH_USER_MODEL,  # Link the product to a user through the custom user model.
+        on_delete=models.CASCADE,  # Delete all associated products if the user is deleted.
     )
-    title = models.CharField(max_length=100)  # Название рецепта.
-    description = models.TextField(blank=True)  # Описание рецепта, необязательное поле.
-    time_minutes = models.IntegerField()  # Время приготовления в минутах.
-    price = models.DecimalField(max_digits=5, decimal_places=2)  # Цена рецепта, с точностью до двух знаков.
-    link = models.CharField(max_length=100, blank=True)  # Ссылка на рецепт, необязательное поле.
-    tags = models.ManyToManyField("Tag")
+    title = models.CharField(max_length=100)  # Product title.
+    description = models.TextField(blank=True)  # Product description, optional field.
+    time_minutes = models.IntegerField()  # Preparation time in minutes.
+    price = models.DecimalField(max_digits=5, decimal_places=2)  # Product price, accurate to two decimal places.
+    link = models.CharField(max_length=100, blank=True)  # Link to the product, optional field.
+    tags = models.ManyToManyField("Tag")  # Many-to-many relationship with the Tag model.
 
     def __str__(self):
-        """Возвращает строковое представление объекта (название рецепта)."""
-        return self.title  # Выводим название рецепта.
+        """Returns the string representation of the object (product title)."""
+        return self.title  # Display the product title.
 
-class Tag(models.Model):
-    name = models.CharField(max_length=225)
+
+class Tag(models.Model):  # Model for tags associated with products.
+    """Tag objects."""
+    name = models.CharField(max_length=225)  # Tag name.
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,  # Связываем рецепт с пользователем через кастомную модель пользователя.
-        on_delete=models.CASCADE,  # Если пользователь удален, все связанные рецепты удаляются.
+        settings.AUTH_USER_MODEL,  # Link the tag to a user through the custom user model.
+        on_delete=models.CASCADE,  # Delete all associated tags if the user is deleted.
     )
+
     def __str__(self):
-        """Возвращает строковое представление объекта (название рецепта)."""
-        return self.name
+        """Returns the string representation of the object (tag name)."""
+        return self.name  # Display the tag name.
