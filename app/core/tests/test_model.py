@@ -9,6 +9,11 @@ from django.contrib.auth import get_user_model  # Получаем модель 
 from core import models  # Импортируем модели из приложения core.
 
 
+def create_user(email="test@examole.com", password='testpass123'):
+    return get_user_model().objects.create_user(email, password)
+
+
+
 class TestModels(TestCase):  # Создаем класс тестов, наследуемый от TestCase.
     """Тесты для моделей."""
 
@@ -69,3 +74,10 @@ class TestModels(TestCase):  # Создаем класс тестов, насл�
         )
 
         self.assertEqual(str(product), product.title)  # Проверяем, что строковое представление рецепта соответствует его названию.
+
+    def test_create_tag(self):
+       """Test create a tag"""
+       user = create_user()
+       tag = models.Tag.objects.create(user=user, name="Tag1")
+
+       self.assertEqual(str(tag), tag.name)
