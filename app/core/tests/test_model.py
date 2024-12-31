@@ -3,10 +3,10 @@ Tests for models.
 """
 from decimal import Decimal
 
-from django.test import TestCase  # Import the base class for creating tests.
-from django.contrib.auth import get_user_model  # Retrieve the user model used in the project.
+from django.test import TestCase
+from django.contrib.auth import get_user_model
 
-from core import models  # Import models from the core application.
+from core import models
 
 
 def create_user(email="test@example.com", password='testpass123'):
@@ -14,20 +14,20 @@ def create_user(email="test@example.com", password='testpass123'):
     return get_user_model().objects.create_user(email, password)
 
 
-class TestModels(TestCase):  # Create a test class inheriting from TestCase.
+class TestModels(TestCase):
     """Tests for models."""
 
     def test_create_user_with_email_successful(self):
         """Test: successfully creating a user with an email."""
-        email = "test@example.com"  # Test email.
-        password = "testpass11!"  # Test password.
-        user = get_user_model().objects.create_user(  # Create a user with the provided email and password.
+        email = "test@example.com"
+        password = "testpass11!"
+        user = get_user_model().objects.create_user(
             email=email,
             password=password
         )
 
-        self.assertEqual(user.email, email)  # Verify that the user's email matches the provided one.
-        self.assertTrue(user.check_password(password))  # Verify that the password is set correctly.
+        self.assertEqual(user.email, email)
+        self.assertTrue(user.check_password(password))
 
     def test_new_user_email_normalized(self):
         """Test: email is normalized upon user creation."""
@@ -38,46 +38,46 @@ class TestModels(TestCase):  # Create a test class inheriting from TestCase.
             ['test4@example.COM', 'test4@example.com'],
         ]
 
-        for email, expected in sample_emails:  # For each sample, check normalization.
-            user = get_user_model().objects.create_user(email, 'sample123')  # Create a user.
-            self.assertEqual(user.email, expected)  # Verify that the email is normalized correctly.
+        for email, expected in sample_emails:
+            user = get_user_model().objects.create_user(email, 'sample123')
+            self.assertEqual(user.email, expected)
 
     def test_new_user_without_email_raises_error(self):
         """Test: creating a user without an email raises a ValueError."""
-        with self.assertRaises(ValueError):  # Expect a ValueError if no email is provided.
-            get_user_model().objects.create_user('', 'sample123')  # Attempt to create a user without an email.
+        with self.assertRaises(ValueError):
+            get_user_model().objects.create_user('', 'sample123')
 
     def test_create_superuser(self):
         """Test: successfully creating a superuser."""
-        user = get_user_model().objects.create_superuser(  # Create a superuser.
+        user = get_user_model().objects.create_superuser(
             'test4@example.com',
             '123'
         )
 
-        self.assertTrue(user.is_superuser)  # Verify the user is a superuser.
-        self.assertTrue(user.is_staff)  # Verify the user has staff status.
+        self.assertTrue(user.is_superuser)
+        self.assertTrue(user.is_staff)
 
     def test_create_product(self):
         """Test: successfully creating a product."""
-        user = get_user_model().objects.create_user(  # Create a user for the product.
+        user = get_user_model().objects.create_user(
             'test@example.com',
             'pass123',
         )
 
-        product = models.Product.objects.create(  # Create a product object with specified attributes.
+        product = models.Product.objects.create(
             user=user,
-            title='simple product name',  # Product title.
-            description='simple test',  # Product description.
-            price=Decimal('5.5'),  # Product price.
-            time_minutes=5,  # Preparation time in minutes.
+            title='simple product name',
+            description='simple test',
+            price=Decimal('5.5'),
+            time_minutes=5,
             link="////"
         )
 
-        self.assertEqual(str(product), product.title)  # Verify the string representation matches the product title.
+        self.assertEqual(str(product), product.title)
 
     def test_create_tag(self):
         """Test: successfully creating a tag."""
-        user = create_user()  # Create a user.
-        tag = models.Tag.objects.create(user=user, name="Tag1")  # Create a tag associated with the user.
+        user = create_user()
+        tag = models.Tag.objects.create(user=user, name="Tag1")
 
-        self.assertEqual(str(tag), tag.name)  # Verify the string representation matches the tag name.
+        self.assertEqual(str(tag), tag.name)
