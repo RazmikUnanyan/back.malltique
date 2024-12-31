@@ -12,117 +12,87 @@ from django.urls import reverse  # Импорт функции для генер
 from rest_framework import status  # Импортируем статусы HTTP из DRF.
 from rest_framework.test import APIClient  # Импорт клиента для тестирования API.
 
-from core.models import Product  # Импорт модели рецептов.
+from core.models import Product  # Импорт модели продуктов.
 
 from product.serializers import (
     ProductSerializers,
     ProductDetailSerializers,
-)  # Импорт сериализатора для рецептов.
+)  # Импорт сериализаторов для продуктов.
 
 from user.tests.test_user_api import create_user  # Импорт функции для создания пользователя из тестов пользователя.
 
 def detail_url(product_id):
+    """Generate and return a product detail URL."""
     return reverse('product:product-detail', args=[product_id])
 
-# Создаем URL для списка рецептов с помощью функции reverse.
+# Создаем URL для списка продуктов с помощью функции reverse.
 PRODUCT_URL = reverse('product:product-list')
 
-
-# Функция для создания рецепта с указанным пользователем и параметрами.
 def create_product(user, **params):
-    # Значения по умолчанию для полей рецепта.
+    """Create and return a new product."""
     defaults = {
-        'title': 'titile',  # Заголовок рецепта.
-        'description': 'description',  # Описание рецепта.
-        'price': "3.42",  # Цена рецепта.
-        'link': '#',  # Ссылка на рецепт.
-        'time_minutes': 2,  # Время приготовления в минутах.
+        'title': 'title',  # Заголовок продукта.
+        'description': 'description',  # Описание продукта.
+        'price': "3.42",  # Цена продукта.
+        'link': '#',  # Ссылка на продукт.
+        'time_minutes': 2,  # Время подготовки продукта в минутах.
     }
-
-    # Обновляем значения по умолчанию, если переданы дополнительные параметры.
     defaults.update(params)
-
-    # Создаем экземпляр рецепта в базе данных.
-    product = Product.objects.create(user=user, **defaults)
-    return product  # Возвращаем созданный рецепт.
-
+    return Product.objects.create(user=user, **defaults)
 
 def create_user(**params):
-    """Create and return new user"""
+    """Create and return a new user."""
     return get_user_model().objects.create_user(**params)
 
-
-# Класс тестов для неавторизованных запросов к API рецептов.
 class PublicProductAPITests(TestCase):
     """Test UNAUTHORIZED req"""
 
     def setUp(self):
-        # Инициализируем клиент API для тестирования.
+        """Set up the test client."""
         self.client = APIClient()
 
     def test_auth_required(self):
-        # Тестируем, что доступ к API рецептов требует авторизации.
-        res = self.client.get(PRODUCT_URL)  # Отправляем GET-запрос.
-
-        # Проверяем, что код ответа - 401 (неавторизован).
+        """Test that authentication is required to access products."""
+        res = self.client.get(PRODUCT_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-
-# Класс тестов для авторизованных запросов к API рецептов.
 class PrivateProductAPITests(TestCase):
-    """Test authenticated API request"""
+    """Test AUTHENTICATED API requests."""
 
     def setUp(self):
-        # Инициализируем клиент API для тестирования.
+        """Set up the test client and authenticate user."""
         self.client = APIClient()
-        # Создаем пользователя для тестирования.
         self.user = create_user(email='test@example.com', password='eeeepass')
-        # Аутентифицируем пользователя в API-клиенте.
         self.client.force_authenticate(self.user)
 
     def test_retrieve_product(self):
-        """Test retrieving a list of product."""
-        # Создаем два рецепта для текущего пользователя.
+        """Test retrieving a list of products."""
         create_product(user=self.user)
         create_product(user=self.user)
 
-        # Отправляем GET-запрос на получение списка рецептов.
         res = self.client.get(PRODUCT_URL)
+        products = Product.objects.all().order_by('-id')
+        serializer = ProductSerializers(products, many=True)
 
-        # Получаем список рецептов из базы, отсортированных по ID в порядке убывания.
-        product = Product.objects.all().order_by('-id')
-        serializer = ProductSerializers(product, many=True)  # Сериализуем данные.
-
-        # Проверяем, что код ответа - 200 (успешно).
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        # Сравниваем данные ответа с сериализованными данными.
         self.assertEqual(res.data, serializer.data)
 
     def test_product_limited_to_user(self):
-        """Test list of product is limited to authenticated user."""
-        # Создаем другого пользователя.
-        other_user = create_user(email='Res@example.com', password='testpasstse')
-        # Создаем рецепт для другого пользователя.
+        """Test that products are limited to the authenticated user."""
+        other_user = create_user(email='other@example.com', password='testpass')
         create_product(user=other_user)
-        # Создаем рецепт для текущего пользователя.
         create_product(user=self.user)
 
-        # Отправляем GET-запрос на получение списка рецептов.
         res = self.client.get(PRODUCT_URL)
+        products = Product.objects.filter(user=self.user)
+        serializer = ProductSerializers(products, many=True)
 
-        # Получаем рецепты, принадлежащие текущему пользователю.
-        product = Product.objects.filter(user=self.user)
-        serializer = ProductSerializers(product, many=True)  # Сериализуем данные.
-
-        # Проверяем, что код ответа - 200 (успешно).
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        # Сравниваем данные ответа с сериализованными данными.
         self.assertEqual(res.data, serializer.data)
 
-
     def test_get_product_detail(self):
+        """Test retrieving a product's detail."""
         product = create_product(user=self.user)
-
         url = detail_url(product.id)
         res = self.client.get(url)
 
@@ -132,12 +102,11 @@ class PrivateProductAPITests(TestCase):
     def test_create_product(self):
         """Test creating a product."""
         payload = {
-            'title': "test create",
+            'title': "Test Product",
             'price': Decimal('2.33'),
-            'description': 'test create description',
-            'time_minutes': 23,
+            'description': 'Test description',
+            'time_minutes': 10,
         }
-
         res = self.client.post(PRODUCT_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
@@ -147,23 +116,60 @@ class PrivateProductAPITests(TestCase):
         self.assertEqual(product.user, self.user)
 
     def test_partial_update(self):
-        original_link = 'https://fmalltique.com'
-        product = create_product(
-            user=self.user,
-            title='title',
-            link=original_link
-        )
-
-        payload = {'title': "new product"}
-        url=detail_url(product.id)
+        """Test partially updating a product."""
+        product = create_product(user=self.user, title='Original Title', link='https://example.com')
+        payload = {'title': 'Updated Title'}
+        url = detail_url(product.id)
         res = self.client.patch(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         product.refresh_from_db()
         self.assertEqual(product.title, payload['title'])
-        self.assertEqual(product.link, original_link)
+
+    def test_full_update(self):
+        """Test updating a product with PUT."""
+        product = create_product(user=self.user, title='Original Title', link='https://example.com')
+        payload = {
+            'title': 'Updated Title',
+            'link': 'https://example.com/updated',
+            'description': 'Updated Description',
+            'time_minutes': 5,
+            'price': Decimal('5.00'),
+        }
+        url = detail_url(product.id)
+        res = self.client.put(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        product.refresh_from_db()
+        for k, v in payload.items():
+            self.assertEqual(getattr(product, k), v)
+
+    def test_update_user_returns_error(self):
+        """Test changing the product user results in an error."""
+        new_user = create_user(email='newuser@example.com', password='testpass')
+        product = create_product(user=self.user)
+        payload = {'user': new_user.id}
+        url = detail_url(product.id)
+        self.client.patch(url, payload)
+
+        product.refresh_from_db()
         self.assertEqual(product.user, self.user)
 
+    def test_delete_product(self):
+        """Test deleting a product."""
+        product = create_product(user=self.user)
+        url = detail_url(product.id)
+        res = self.client.delete(url)
 
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Product.objects.filter(id=product.id).exists())
 
+    def test_delete_other_user_product(self):
+        """Test attempting to delete another user's product results in an error."""
+        other_user = create_user(email='other@example.com', password='testpass')
+        product = create_product(user=other_user)
+        url = detail_url(product.id)
+        res = self.client.delete(url)
 
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue(Product.objects.filter(id=product.id).exists())
