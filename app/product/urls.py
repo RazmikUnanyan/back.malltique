@@ -19,7 +19,7 @@ router = DefaultRouter()
 # Creating an instance of the DefaultRouter for automatic URL routing.
 
 router.register('product', views.ProductViewSet)
-# Registering the `ProductViewSet` with the router under the `product` endpoint.
+router.register('tag', views.TagViewSet)
 
 app_name = 'product'
 # Defining the app namespace for the `product` app, useful for namespaced URL reversing.

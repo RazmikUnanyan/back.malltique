@@ -5,7 +5,7 @@ from decimal import Decimal  # Импортируем модуль для раб
 from itertools import product
 
 from django.contrib.auth import get_user_model  # Импорт функции для получения текущей модели пользователя.
-from django.template.defaultfilters import title
+
 from django.test import TestCase  # Импорт класса для создания тестов.
 from django.urls import reverse  # Импорт функции для генерации URL-адресов.
 

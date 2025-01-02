@@ -9,15 +9,15 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.tags import Tags
+from core.models import Tag
 
-from product.serializers import TagSerializer
+from product.serializers import TagsSerializer
 
 TAGS_URL = reverse('product:tag-list')
 
-def create_user(email="test23@example.com", password="<PASSWORD>"):
+def create_user(email="test@example.com", password="<PASSWORD>"):
     """Create and return a new user."""
-    return get_user_model().objects.create_user(email, password)
+    return get_user_model().objects.create_user(email=email, password=password)
 
 class PublicTagsAPITests(TestCase):
     """Test unauthenticated tags API access."""
@@ -29,7 +29,7 @@ class PublicTagsAPITests(TestCase):
         res = self.client.get(TAGS_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-class PrivatTagsAPITests(TestCase):
+class PrivateTagsAPITests(TestCase):
     """Test authenticated tags API access."""
 
     def setUp(self):
@@ -39,21 +39,21 @@ class PrivatTagsAPITests(TestCase):
 
     def test_retrieve_tags(self):
         """Test retrieving a list of tags."""
-        Tags.objects.create(user=self.user, name='Test Tag')
-        Tags.objects.create(user=self.user, name='Test Tag 2')
+        Tag.objects.create(user=self.user, name='Test Tag')
+        Tag.objects.create(user=self.user, name='Test Tag 2')
 
         res = self.client.get(TAGS_URL)
 
-        tags = Tags.objects.all().order_by('-name')
-        serializer = TagSerializer(tags, many=True)
+        tags = Tag.objects.all().order_by('-name')
+        serializer = TagsSerializer(tags, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
     def test_tags_limited_to_user(self):
         """Test is limited to user."""
-        user2 = create_user()
-        Tags.objects.create(user=user2, name='Test Tag')
-        tag = Tags.objects.create(user=self.user, name='Test Tag 23')
+        user2 = create_user(email="test2@exaple.com")
+        Tag.objects.create(user=user2, name='Test Tag')
+        tag = Tag.objects.create(user=self.user, name='Test Tag 23')
 
         res = self.client.get(TAGS_URL)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
