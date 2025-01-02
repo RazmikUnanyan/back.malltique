@@ -39,8 +39,8 @@ class PrivatTagsAPITests(TestCase):
 
     def test_retrieve_tags(self):
         """Test retrieving a list of tags."""
-        Tags.objects.create(user=self.user, name="Test Tag")
-        Tags.objects.create(user=self.user, name="Test Tag 2")
+        Tags.objects.create(user=self.user, name='Test Tag')
+        Tags.objects.create(user=self.user, name='Test Tag 2')
 
         res = self.client.get(TAGS_URL)
 
@@ -52,8 +52,8 @@ class PrivatTagsAPITests(TestCase):
     def test_tags_limited_to_user(self):
         """Test is limited to user."""
         user2 = create_user()
-        Tags.objects.create(user=user2, name="Test Tag")
-        tag = Tags.objects.create(user=self.user, name="Test Tag 23")
+        Tags.objects.create(user=user2, name='Test Tag')
+        tag = Tags.objects.create(user=self.user, name='Test Tag 23')
 
         res = self.client.get(TAGS_URL)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
