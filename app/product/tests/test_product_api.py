@@ -2,8 +2,6 @@
 Test for product APIs.
 """
 from decimal import Decimal  # Импортируем модуль для работы с числами с фиксированной точностью.
-from itertools import product
-from os.path import exists
 
 from django.contrib.auth import get_user_model  # Импорт функции для получения текущей модели пользователя.
 
@@ -224,3 +222,44 @@ class PrivateProductAPITests(TestCase):
         for tag in payload['tags']:
             exists = product.tags.filter(name=tag['name'], user=self.user).exists()
             self.assertTrue(exists)
+
+    def test_create_tags_on_update(self):
+        """Test creating tags when updating a product."""
+        product = create_product(user=self.user)
+
+        payload = {'tags': [{'name': 'tag 123'}]}
+        url = detail_url(product.id)
+        res = self.client.patch(url, payload, formt='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        new_tag = Tag.objects.get(user=self.user, name='tag 123')
+        self.assertIn(new_tag, product.tags.all())
+
+    def test_update_product_assign_tags(self):
+        """Test assigning an existing tag when updating a product."""
+        tag_breakfast = Tag.objects.create(user=self.user, name='breakfast')
+        product = create_product(user=self.user)
+        product.tags.add(tag_breakfast)
+
+        tag_lunch = Tag.objects.create(user=self.user, name='Lunch')
+        payload = {'tags': [{'name': 'Lunch'}]}
+        url = detail_url(product.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(tag_lunch, product.tags.all())
+        self.assertNotIn(tag_breakfast, product.tags.all())
+
+    def test_clear_product_tags(self):
+        """Test clearing a product tags."""
+        tag = Tag.objects.create(user=self.user, name='tag clearing')
+        product = create_product(user=self.user)
+        product.tags.add(tag)
+
+        payload = {'tags': []}
+        url = detail_url(product.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(product.tags.count(), 0)
+
