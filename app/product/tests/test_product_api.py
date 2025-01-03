@@ -229,7 +229,7 @@ class PrivateProductAPITests(TestCase):
 
         payload = {'tags': [{'name': 'tag 123'}]}
         url = detail_url(product.id)
-        res = self.client.patch(url, payload, formt='json')
+        res = self.client.patch(url, payload, format='json')
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         new_tag = Tag.objects.get(user=self.user, name='tag 123')
