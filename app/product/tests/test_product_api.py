@@ -3,6 +3,7 @@ Test for product APIs.
 """
 from decimal import Decimal  # Импортируем модуль для работы с числами с фиксированной точностью.
 from itertools import product
+from os.path import exists
 
 from django.contrib.auth import get_user_model  # Импорт функции для получения текущей модели пользователя.
 
@@ -12,7 +13,10 @@ from django.urls import reverse  # Импорт функции для генер
 from rest_framework import status  # Импортируем статусы HTTP из DRF.
 from rest_framework.test import APIClient  # Импорт клиента для тестирования API.
 
-from core.models import Product  # Импорт модели продуктов.
+from core.models import (
+    Product,
+    Tag,
+)
 
 from product.serializers import (
     ProductSerializers,
@@ -173,3 +177,50 @@ class PrivateProductAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue(Product.objects.filter(id=product.id).exists())
+
+    def test_create_product_with_new_tags(self):
+        payload = {
+            'title': 'Updated Title',
+            'link': 'https://example.com/updated',
+            'description': 'Updated Description',
+            'time_minutes': 5,
+            'price': Decimal('5.00'),
+            'tags': [{'name': "tad 1"}, {'name': 'tag 2'}]
+        }
+
+        res = self.client.post(
+            PRODUCT_URL,
+            payload,
+            format="json"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        products = Product.objects.filter(user=self.user)
+        self.assertEqual(products.count(), 1)
+        product = products[0]
+        self.assertEqual(product.tags.count(), 2)
+        for tag in payload['tags']:
+            exists = product.tags.filter(name=tag['name'], user=self.user).exists()
+            self.assertTrue(exists)
+
+    def test_create_product_existing_tags(self):
+        tag_indian = Tag.objects.create(user=self.user, name='indian')
+        payload = {
+            'title': 'Updated Title',
+            'link': 'https://example.com/updated',
+            'description': 'Updated Description',
+            'time_minutes': 5,
+            'price': Decimal('5.00'),
+            'tags': [{'name': "indian"}, {'name': 'Breakfast'}]
+        }
+
+        res = self.client.post(PRODUCT_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        products = Product.objects.filter(user=self.user)
+        self.assertEqual(products.count(), 1)
+        product = products[0]
+        self.assertEqual(product.tags.count(), 2)
+        self.assertIn(tag_indian, product.tags.all())
+        for tag in payload['tags']:
+            exists = product.tags.filter(name=tag['name'], user=self.user).exists()
+            self.assertTrue(exists)
