@@ -16,6 +16,9 @@ from product.serializers import SizesSerializer
 
 SIZE_URL = reverse('product:size-list')
 
+def detail_url(tag_id):
+    """Generate and return a tag detail URL."""
+    return reverse('product:tag-detail', args=[tag_id])
 
 def create_user(email="test@example.com", password="<PASSWORD>"):
     """Create and return a new user."""
@@ -63,3 +66,16 @@ class PrivateSizeAPITests(TestCase):
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['name'], size.name)
         self.assertEqual(res.data[0]['id'], size.id)
+
+
+    def test_update_tag(self):
+        """Test update size."""
+        size = Size.objects.create(user=self.user, name="L")
+
+        payload = {'name': 'XXL'}
+        url=detail_url(size.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        size.refresh_from_db()
+        self.assertEqual(size.name, payload['name'])
