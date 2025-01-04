@@ -313,4 +313,44 @@ class PrivateProductAPITests(TestCase):
             ).exists()
             self.assertTrue(exists)
 
+    def test_create_clothing_size_on_update(self):
+        """Test creating clothing_size when updating a product."""
+        product = create_product(user=self.user)
+
+        payload = {'clothing_sizes': [{'name': 'XXL'}]}
+        url = detail_url(product.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        new_clothing_size = ClothingSize.objects.get(user=self.user, name='XXL')
+        self.assertIn(new_clothing_size, product.clothing_sizes.all())
+
+    def test_update_product_assign_clothing_size(self):
+        """Test assigning an existing clothing_size when updating a product."""
+        size_L = ClothingSize.objects.create(user=self.user, name='L')
+        product = create_product(user=self.user)
+        product.clothing_sizes.add(size_L)
+
+        size_XL = ClothingSize.objects.create(user=self.user, name='XL')
+        payload = {'clothing_sizes': [{'name': 'XL'}]}
+        url = detail_url(product.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(size_XL, product.clothing_sizes.all())
+        self.assertNotIn(size_L, product.clothing_sizes.all())
+
+    def test_clear_product_clothing_size(self):
+        """Test clearing a product clothing_size."""
+        size = ClothingSize.objects.create(user=self.user, name='S')
+        product = create_product(user=self.user)
+        product.clothing_sizes.add(size)
+
+        payload = {'clothing_sizes': []}
+        url = detail_url(product.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(product.clothing_sizes.count(), 0)
+
 
