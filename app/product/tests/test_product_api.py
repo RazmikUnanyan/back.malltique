@@ -280,8 +280,8 @@ class PrivateProductAPITests(TestCase):
         self.assertEqual(products.count(), 1)
         product = products[0]
         self.assertEqual(product.clothing_sizes.count(), 2)
-        for clothing_size in payload['sizes']:
-            exists = product.sizes.filter(
+        for clothing_size in payload['clothing_sizes']:
+            exists = product.clothing_sizes.filter(
                 name=clothing_size['name'],
                 user=self.user
             ).exists()
@@ -306,7 +306,7 @@ class PrivateProductAPITests(TestCase):
         product = products[0]
         self.assertEqual(product.clothing_sizes.count(), 2)
         self.assertIn(clothing_size_xl, product.clothing_sizes.all())
-        for clothing_size in payload['sizes']:
+        for clothing_size in payload['clothing_sizes']:
             exists = product.clothing_sizes.filter(
                 name=clothing_size['name'],
                 user=self.user

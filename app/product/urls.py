@@ -20,7 +20,7 @@ router = DefaultRouter()
 
 router.register('product', views.ProductViewSet)
 router.register('tag', views.TagViewSet)
-router.register('clothing_sizes', views.ClothingSizeViewSet)
+router.register('clothing_sizes', views.ClothingSizeViewSet, basename='clothing_sizes')
 
 app_name = 'product'
 # Defining the app namespace for the `product` app, useful for namespaced URL reversing.

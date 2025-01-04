@@ -29,10 +29,11 @@ class TagsSerializer(serializers.ModelSerializer):
 class ProductSerializers(serializers.ModelSerializer):
     """Serializers for product."""
     tags = TagsSerializer(many=True, required=False)
+    clothing_sizes = ClothingSizeSerializer(many=True, required=False)
 
     class Meta:
         model=Product
-        fields=['id', 'title', 'time_minutes', 'price', 'link', 'tags']
+        fields=['id', 'title', 'time_minutes', 'price', 'link', 'tags', 'clothing_sizes',]
         read_only_fields=['id']
 
     def _get_or_create_tags(self, tags, product):
@@ -42,10 +43,22 @@ class ProductSerializers(serializers.ModelSerializer):
             tag_obj, created = Tag.objects.get_or_create(user=auth_user, **tag)
             product.tags.add(tag_obj)
 
+    def _get_or_create_clothing_sizes(self, clothing_sizes, product):
+        """handle creating or getting clothing_size."""
+        auth_user = self.context['request'].user
+        for clothing_size in clothing_sizes:
+            clothing_size_obj, created = ClothingSize.objects.get_or_create(
+                user=auth_user,
+                **clothing_size
+            )
+            product.clothing_sizes.add(clothing_size_obj)
+
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
+        clothing_sizes = validated_data.pop('clothing_sizes', [])
         product = Product.objects.create(**validated_data)
         self._get_or_create_tags(tags, product)
+        self._get_or_create_clothing_sizes(clothing_sizes, product)
 
         return product
 
