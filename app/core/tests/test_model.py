@@ -82,9 +82,9 @@ class TestModels(TestCase):
 
         self.assertEqual(str(tag), tag.name)
 
-    def test_product_sizes(self):
+    def test_product_clothing_size(self):
         """Test: successfully creating a sizes."""
         user = create_user()
-        size = models.Size.objects.create(user=user, name="XL")
+        clothing_size = models.ClothingSize.objects.create(user=user, name="XL")
 
-        self.assertEqual(str(size), size.name)
+        self.assertEqual(str(clothing_size), clothing_size.name)

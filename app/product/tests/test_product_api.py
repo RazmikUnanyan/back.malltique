@@ -14,6 +14,7 @@ from rest_framework.test import APIClient  # Импорт клиента для 
 from core.models import (
     Product,
     Tag,
+    ClothingSize
 )
 
 from product.serializers import (
@@ -262,4 +263,54 @@ class PrivateProductAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(product.tags.count(), 0)
+
+    def test_create_product_with_new_clothing_sizes(self):
+        payload = {
+            'title': 'Updated Title',
+            'time_minutes': 5,
+            'price': Decimal('5.00'),
+            'tags': [{'name': 'L'}, {'name': 'XL'}],
+            'clothing_sizes': [{'name': 'L'}, {'name': 'XL'}],
+        }
+
+        res = self.client.post(PRODUCT_URL, payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        products = Product.objects.filter(user=self.user)
+        self.assertEqual(products.count(), 1)
+        product = products[0]
+        self.assertEqual(product.clothing_sizes.count(), 2)
+        for clothing_size in payload['sizes']:
+            exists = product.sizes.filter(
+                name=clothing_size['name'],
+                user=self.user
+            ).exists()
+            self.assertTrue(exists)
+
+    def test_create_product_existing_clothing_size(self):
+        clothing_size_xl = ClothingSize.objects.create(user=self.user, name='XL')
+        payload = {
+            'title': 'Updated Title',
+            'link': 'https://example.com/updated',
+            'description': 'Updated Description',
+            'time_minutes': 5,
+            'price': Decimal('5.00'),
+            'tags': [{'name': "ssXL"}, {'name': 'aaaL'}],
+            'clothing_sizes': [{'name': "XL"}, {'name': 'L'}]
+        }
+        res = self.client.post(PRODUCT_URL, payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        products = Product.objects.filter(user=self.user)
+        self.assertEqual(products.count(), 1)
+        product = products[0]
+        self.assertEqual(product.clothing_sizes.count(), 2)
+        self.assertIn(clothing_size_xl, product.clothing_sizes.all())
+        for clothing_size in payload['sizes']:
+            exists = product.clothing_sizes.filter(
+                name=clothing_size['name'],
+                user=self.user
+            ).exists()
+            self.assertTrue(exists)
+
 
