@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from core.models import (
     Product,
     Tag,
+    Size
 )
 from product import serializers
 
@@ -46,6 +47,17 @@ class TagViewSet(mixins.DestroyModelMixin, mixins.UpdateModelMixin, mixins.ListM
 
     def get_queryset(self):
         """Filter tags for authenticated user"""
+        return self.queryset.filter(user=self.request.user).order_by('-name')
+
+class SizeViewSet(mixins.DestroyModelMixin, mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Manage sizes in the database."""
+    serializer_class = serializers.SizesSerializer
+    queryset = Size.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Filter sizes for authenticated user"""
         return self.queryset.filter(user=self.request.user).order_by('-name')
 
 

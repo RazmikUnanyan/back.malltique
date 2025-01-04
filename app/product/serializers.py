@@ -7,8 +7,16 @@ from rest_framework import serializers
 
 from core.models import (
     Product,
-    Tag
+    Tag,
+    Size
 )
+
+class SizesSerializer(serializers.ModelSerializer):
+    """Serializer for sizes"""
+    class Meta:
+        model=Size
+        fields=['id', 'name']
+        read_only_fields=['id']
 
 class TagsSerializer(serializers.ModelSerializer):
     """Serializer for tags"""
@@ -21,10 +29,11 @@ class TagsSerializer(serializers.ModelSerializer):
 class ProductSerializers(serializers.ModelSerializer):
     """Serializers for product."""
     tags = TagsSerializer(many=True, required=False)
+    sizes = SizesSerializer(many=True, required=False)
 
     class Meta:
         model=Product
-        fields=['id', 'title', 'time_minutes', 'price', 'link', 'tags']
+        fields=['id', 'title', 'time_minutes', 'price', 'link', 'tags', 'sizes']
         read_only_fields=['id']
 
     def _get_or_create_tags(self, tags, product):

@@ -58,6 +58,7 @@ class Product(models.Model):  # Model for storing product data.
     price = models.DecimalField(max_digits=5, decimal_places=2)  # Product price, accurate to two decimal places.
     link = models.CharField(max_length=100, blank=True)  # Link to the product, optional field.
     tags = models.ManyToManyField("Tag")  # Many-to-many relationship with the Tag model.
+    sizes = models.ManyToManyField("Size")  # Many-to-many relationship with the Size model.
 
     def __str__(self):
         """Returns the string representation of the object (product title)."""
@@ -73,5 +74,16 @@ class Tag(models.Model):  # Model for tags associated with products.
     )
 
     def __str__(self):
-        """Returns the string representation of the object (tag name)."""
         return self.name  # Display the tag name.
+
+
+class Size(models.Model):
+    """Size objects."""
+    name = models.CharField(max_length=10)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        return self.name

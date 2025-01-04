@@ -81,3 +81,10 @@ class TestModels(TestCase):
         tag = models.Tag.objects.create(user=user, name="Tag1")
 
         self.assertEqual(str(tag), tag.name)
+
+    def test_product_sizes(self):
+        """Test: successfully creating a sizes."""
+        user = create_user()
+        size = models.Size.objects.create(user=user, name="XL")
+
+        self.assertEqual(str(size), size.name)
