@@ -65,9 +65,13 @@ class ProductSerializers(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """Update products."""
         tags = validated_data.pop('tags', None)
+        clothing_sizes = validated_data.pop('clothing_sizes', None)
         if tags is not None:
             instance.tags.clear()
             self._get_or_create_tags(tags, instance)
+        if clothing_sizes is not None:
+            instance.clothing_sizes.clear()
+            self._get_or_create_clothing_sizes(clothing_sizes, instance)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
