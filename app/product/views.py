@@ -38,35 +38,29 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class TagViewSet(
+class BaseProductAttrViewSet(
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+    """Base viewset for product attributes."""
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Filter queryset for authenticated user"""
+        return self.queryset.filter(user=self.request.user).order_by('-name')
+
+
+
+class TagViewSet(BaseProductAttrViewSet):
     """Manage tags in the database."""
     serializer_class = serializers.TagsSerializer
     queryset = Tag.objects.all()
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        """Filter tags for authenticated user"""
-        return self.queryset.filter(user=self.request.user).order_by('-name')
 
 
-class ClothingSizeViewSet(
-    mixins.DestroyModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet
-):
+class ClothingSizeViewSet(BaseProductAttrViewSet):
     """Manage sizes in the database."""
     serializer_class = serializers.ClothingSizeSerializer
     queryset = ClothingSize.objects.all()
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        """Filter sizes for authenticated user"""
-        return self.queryset.filter(user=self.request.user).order_by('-name')
