@@ -2,6 +2,11 @@
 Test for product APIs.
 """
 from decimal import Decimal  # Импортируем модуль для работы с числами с фиксированной точностью.
+import tempfile
+import os
+from fileinput import filename
+
+from PIL import Image
 
 from django.contrib.auth import get_user_model  # Импорт функции для получения текущей модели пользователя.
 
@@ -30,6 +35,10 @@ def detail_url(product_id):
 
 # Создаем URL для списка продуктов с помощью функции reverse.
 PRODUCT_URL = reverse('product:product-list')
+
+def image_upload_url(product_id):
+    """Generate and return a product image URL."""
+    return reverse('product:product-upload-image', args=[product_id])
 
 def create_product(user, **params):
     """Create and return a new product."""
@@ -352,5 +361,54 @@ class PrivateProductAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(product.clothing_sizes.count(), 0)
+
+
+class ImageUploadTest(TestCase):
+    """Test for the image upload api"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = create_user(email='test@example.com', password='eeeepass')
+        self.client.force_authenticate(self.user)
+        self.product = create_product(user=self.user)
+
+    def tearDown(self):
+        self.product.image.delete()
+
+    def test_upload_image(self):
+        # Создаем URL для загрузки изображения, связанный с продуктом по его ID
+        url = image_upload_url(self.product.id)
+
+        # Создаем временный файл с расширением .jpg для тестового изображения
+        with tempfile.NamedTemporaryFile(suffix='.jpg') as image_file:
+            # Создаем простое изображение 10x10 пикселей в формате RGB
+            img = Image.new('RGB', (10, 10))
+            # Сохраняем изображение во временный файл в формате JPEG
+            img.save(image_file, format='JPEG')
+            # Перемещаем указатель файла в начало для последующего чтения
+            image_file.seek(0)
+            # Формируем payload с изображением для отправки
+            payload = {'image': image_file}
+            # Отправляем POST-запрос на сервер с изображением в формате multipart
+            res = self.client.post(url, payload, format='multipart')
+
+        # Обновляем объект продукта из базы данных
+        self.product.refresh_from_db()
+
+        # Проверяем, что сервер вернул статус 200 OK
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        # Убеждаемся, что в ответе присутствует ключ 'image'
+        self.assertIn('image', res.data)
+        # Проверяем, что файл изображения был успешно сохранен по указанному пути
+        self.assertTrue(os.path.exists(self.product.image.path))
+
+
+    def test_upload_image_bad_request(self):
+        url = image_upload_url(self.product.id)
+        payload = {'image': 'notanimage'}
+        res = self.client.post(url, payload, format='multipart')
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 
