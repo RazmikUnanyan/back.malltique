@@ -1,6 +1,7 @@
 """
 Tests for models.
 """
+from unittest.mock import patch
 from decimal import Decimal
 
 from django.test import TestCase
@@ -88,3 +89,13 @@ class TestModels(TestCase):
         clothing_size = models.ClothingSize.objects.create(user=user, name="XL")
 
         self.assertEqual(str(clothing_size), clothing_size.name)
+
+    @patch('core.models.uuid.uuid4')  # Заменяем вызов функции uuid4 на макет, чтобы контролировать результат в тесте.
+    def test_product_file_name_uuid(self, mock_uuid):  # Определяем тестовую функцию, передавая объект mock_uuid.
+        """Test generating image path"""
+        uuid = 'test_uuid'  # Устанавливаем фиксированное значение для UUID, чтобы получить предсказуемый результат.
+        mock_uuid.return_value = uuid  # Указываем макету возвращать заранее определенный UUID.
+        file_path = models.product_image_file_path(None, 'example.jpg')  # Вызываем тестируемую функцию для генерации пути к файлу.
+
+        self.assertEqual(file_path,f'uploads/product/{uuid}.jpg')  # Проверяем, что возвращенный путь совпадает с ожидаемым.
+

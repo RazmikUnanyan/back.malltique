@@ -1,6 +1,9 @@
 """
 Database models.
 """
+import uuid
+import os
+
 from django.conf import settings  # Import project settings for Django.
 from django.db import models  # Import base module for working with models.
 from django.contrib.auth.models import (  # Import base classes for working with users.
@@ -8,8 +11,13 @@ from django.contrib.auth.models import (  # Import base classes for working with
     BaseUserManager,  # Manager for handling user objects.
     PermissionsMixin,  # Adds support for permissions and groups.
 )
-from django.db.models import CharField  # Import a field for text data.
 
+
+def product_image_file_path(instance, filename):
+    ext = os.path.splitext(filename)[1]
+    filename = f'{uuid.uuid4()}{ext}'
+
+    return os.path.join('uploads', 'product', filename)
 
 class UserManager(BaseUserManager):  # Custom manager for the User model.
     """Manager for handling user objects."""
@@ -59,6 +67,7 @@ class Product(models.Model):  # Model for storing product data.
     link = models.CharField(max_length=100, blank=True)  # Link to the product, optional field.
     tags = models.ManyToManyField('Tag')  # Many-to-many relationship with the Tag model.
     clothing_sizes = models.ManyToManyField('ClothingSize')  # Many-to-many relationship with the Size model.
+    image = models.ImageField(null=True, upload_to=product_image_file_path)
 
     def __str__(self):
         """Returns the string representation of the object (product title)."""
