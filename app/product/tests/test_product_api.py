@@ -1,6 +1,7 @@
 """
 Test for product APIs.
 """
+from cgitb import reset
 from decimal import Decimal  # Импортируем модуль для работы с числами с фиксированной точностью.
 import tempfile
 import os
@@ -361,6 +362,49 @@ class PrivateProductAPITests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(product.clothing_sizes.count(), 0)
+
+    def test_filter_by_tags(self):
+        p1 = create_product(user=self.user, title='1')
+        p2 = create_product(user=self.user, title='2')
+        tag1 = Tag.objects.create(user=self.user, name='T1')
+        tag2 = Tag.objects.create(user=self.user, name='T2')
+
+        p1.tags.add(tag1)
+        p2.tags.add(tag2)
+        p3 = create_product(user=self.user, title='3')
+
+        params = {'tags': f'{tag1.id}, {tag2.id}'}
+        res = self.client.get(PRODUCT_URL, params)
+
+        s1 = ProductSerializers(p1)
+        s2 = ProductSerializers(p2)
+        s3 = ProductSerializers(p3)
+
+        self.assertIn(s1.data, res.data)
+        self.assertIn(s2.data, res.data)
+        self.assertNotIn(s3.data, res.data)
+
+    def test_filter_by_clothing_sizes(self):
+        p1 = create_product(user=self.user, title='1')
+        p2 = create_product(user=self.user, title='2')
+        clothing_sizes1 = ClothingSize.objects.create(user=self.user, name='T1')
+        clothing_sizes2 = ClothingSize.objects.create(user=self.user, name='T2')
+
+        p1.clothing_sizes.add(clothing_sizes1)
+        p2.clothing_sizes.add(clothing_sizes2)
+        p3 = create_product(user=self.user, title='3')
+
+        params = {'clothing_sizes': f'{clothing_sizes1.id}, {clothing_sizes2.id}'}
+        res = self.client.get(PRODUCT_URL, params)
+
+        s1 = ProductSerializers(p1)
+        s2 = ProductSerializers(p2)
+        s3 = ProductSerializers(p3)
+
+        self.assertIn(s1.data, res.data)
+        self.assertIn(s2.data, res.data)
+        self.assertNotIn(s3.data, res.data)
+
 
 
 class ImageUploadTest(TestCase):
