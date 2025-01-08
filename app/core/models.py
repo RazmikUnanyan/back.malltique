@@ -14,6 +14,7 @@ from django.contrib.auth.models import (  # Import base classes for working with
 
 
 def product_image_file_path(instance, filename):
+    """Generate file path for new product image."""
     ext = os.path.splitext(filename)[1]
     filename = f'{uuid.uuid4()}{ext}'
 
