@@ -1,12 +1,17 @@
 """
 View for product.
 """
+from drf_spectacular.utils import (
+    extend_schema_view,
+    extend_schema,
+    OpenApiParameter,
+    OpenApiTypes,
+)
 from rest_framework import (
     viewsets,
     mixins,
     status,
 )
-
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
@@ -27,9 +32,26 @@ class ProductViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    def _params_to_ints(self, qs):
+        """Convert a list strings to integers"""
+        return [int(str_id) for str_id in qs.split(',')]
+
+
     def get_queryset(self):
         """Retrieve product for authentication user."""
-        return self.queryset.filter(user=self.request.user).order_by('-id')
+        tags = self.request.query_params.get('tags')
+        clothing_sizes = self.request.query_params.get('clothing_sizes')
+        queryset = self.queryset
+        if tags:
+            tag_ids = self._params_to_ints(tags)
+            queryset = queryset.filter(tags__id__in=tag_ids)
+        if clothing_sizes:
+            clothing_sizes_ids = self._params_to_ints(clothing_sizes)
+            queryset = queryset.filter(clothing_sizes__id__in=clothing_sizes_ids)
+
+        return queryset.filter(
+            user=self.request.user
+        ).order_by('-id').distinct()
 
     def get_serializer_class(self):
         """Return the serializer class for request."""
