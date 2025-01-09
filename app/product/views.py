@@ -24,6 +24,25 @@ from core.models import (
 )
 from product import serializers
 
+@extend_schema_view(
+    # Decorator to extend the schema for this view, enabling customization of API documentation.
+    list=extend_schema(
+        # Specifies schema customization for the `list` action of the view.
+        parameters=[
+            # Defines additional query parameters for the API endpoint.
+            OpenApiParameter(
+                'tags',  # Name of the query parameter.
+                OpenApiTypes.STR,  # Specifies the type of the parameter as a string.
+                description="Comma separated list of IDs to filter"  # Description of how to use the parameter.
+            ),
+            OpenApiParameter(
+                'clothing_sizes',  # Name of the query parameter.
+                OpenApiTypes.STR,  # Specifies the type of the parameter as a string.
+                description="Comma separated list of clothing_sizes IDs to filter"  # Description of how to use the parameter.
+            )
+        ]
+    )
+)
 
 class ProductViewSet(viewsets.ModelViewSet):
     """Views for manage product APIs."""
