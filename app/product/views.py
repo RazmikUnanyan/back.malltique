@@ -55,19 +55,29 @@ class ProductViewSet(viewsets.ModelViewSet):
         """Convert a list strings to integers"""
         return [int(str_id) for str_id in qs.split(',')]
 
-
     def get_queryset(self):
-        """Retrieve product for authentication user."""
+        """Retrieve products for the authenticated user."""
+        # Get the 'tags' query parameter from the request.
         tags = self.request.query_params.get('tags')
+        # Get the 'clothing_sizes' query parameter from the request.
         clothing_sizes = self.request.query_params.get('clothing_sizes')
+        # Initialize the queryset with the default queryset for the view.
         queryset = self.queryset
+
         if tags:
+            # Convert the comma-separated list of tag IDs into a list of integers.
             tag_ids = self._params_to_ints(tags)
+            # Filter the queryset to include only products associated with the specified tag IDs.
             queryset = queryset.filter(tags__id__in=tag_ids)
+
         if clothing_sizes:
+            # Convert the comma-separated list of clothing size IDs into a list of integers.
             clothing_sizes_ids = self._params_to_ints(clothing_sizes)
+            # Filter the queryset to include only products associated with the specified clothing size IDs.
             queryset = queryset.filter(clothing_sizes__id__in=clothing_sizes_ids)
 
+        # Further filter the queryset to include only products belonging to the authenticated user,
+        # order by descending ID, and ensure unique results.
         return queryset.filter(
             user=self.request.user
         ).order_by('-id').distinct()
