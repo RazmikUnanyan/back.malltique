@@ -108,6 +108,20 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema_view(
+    # Decorator to extend the schema for this view, enabling customization of API documentation.
+    list=extend_schema(
+        # Specifies schema customization for the `list` action of the view.
+        parameters=[
+            # Defines additional query parameters for the API endpoint.
+            OpenApiParameter(
+                'assigned_only',
+                OpenApiTypes.INT, enum=[0,1],
+                description='Filter by items assigned to product',
+            )
+        ]
+    )
+)
 class BaseProductAttrViewSet(
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
@@ -120,7 +134,16 @@ class BaseProductAttrViewSet(
 
     def get_queryset(self):
         """Filter queryset for authenticated user"""
-        return self.queryset.filter(user=self.request.user).order_by('-name')
+        assigned_only = bool(
+            int(self.request.query_params.get('assigned_only', 0))
+        )
+        queryset = self.queryset
+        if assigned_only:
+            queryset = queryset.filter(product__isnull=False)
+
+        return queryset.filter(
+            user=self.request.user
+        ).order_by('-name').distinct()
 
 
 
