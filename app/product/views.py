@@ -24,26 +24,23 @@ from core.models import (
 )
 from product import serializers
 
+
 @extend_schema_view(
-    # Decorator to extend the schema for this view, enabling customization of API documentation.
     list=extend_schema(
-        # Specifies schema customization for the `list` action of the view.
         parameters=[
-            # Defines additional query parameters for the API endpoint.
             OpenApiParameter(
-                'tags',  # Name of the query parameter.
-                OpenApiTypes.STR,  # Specifies the type of the parameter as a string.
-                description="Comma separated list of IDs to filter"  # Description of how to use the parameter.
+                'tags',
+                OpenApiTypes.STR,
+                description="Comma separated list of IDs to filter"
             ),
             OpenApiParameter(
-                'clothing_sizes',  # Name of the query parameter.
-                OpenApiTypes.STR,  # Specifies the type of the parameter as a string.
-                description="Comma separated list of clothing_sizes IDs to filter"  # Description of how to use the parameter.
+                'clothing_sizes',
+                OpenApiTypes.STR,
+                description="IDs to filter"
             )
         ]
     )
 )
-
 class ProductViewSet(viewsets.ModelViewSet):
     """Views for manage product APIs."""
     serializer_class = serializers.ProductDetailSerializers
@@ -65,19 +62,15 @@ class ProductViewSet(viewsets.ModelViewSet):
         queryset = self.queryset
 
         if tags:
-            # Convert the comma-separated list of tag IDs into a list of integers.
             tag_ids = self._params_to_ints(tags)
-            # Filter the queryset to include only products associated with the specified tag IDs.
             queryset = queryset.filter(tags__id__in=tag_ids)
 
         if clothing_sizes:
-            # Convert the comma-separated list of clothing size IDs into a list of integers.
             clothing_sizes_ids = self._params_to_ints(clothing_sizes)
-            # Filter the queryset to include only products associated with the specified clothing size IDs.
-            queryset = queryset.filter(clothing_sizes__id__in=clothing_sizes_ids)
+            queryset = queryset.filter(
+                clothing_sizes__id__in=clothing_sizes_ids
+            )
 
-        # Further filter the queryset to include only products belonging to the authenticated user,
-        # order by descending ID, and ensure unique results.
         return queryset.filter(
             user=self.request.user
         ).order_by('-id').distinct()
@@ -109,14 +102,11 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    # Decorator to extend the schema for this view, enabling customization of API documentation.
     list=extend_schema(
-        # Specifies schema customization for the `list` action of the view.
         parameters=[
-            # Defines additional query parameters for the API endpoint.
             OpenApiParameter(
                 'assigned_only',
-                OpenApiTypes.INT, enum=[0,1],
+                OpenApiTypes.INT, enum=[0, 1],
                 description='Filter by items assigned to product',
             )
         ]
@@ -144,7 +134,6 @@ class BaseProductAttrViewSet(
         return queryset.filter(
             user=self.request.user
         ).order_by('-name').distinct()
-
 
 
 class TagViewSet(BaseProductAttrViewSet):

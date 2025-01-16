@@ -88,7 +88,7 @@ class ProductSerializers(serializers.ModelSerializer):
 class ProductDetailSerializers(ProductSerializers):
     """Serializers for product detail."""
     class Meta(ProductSerializers.Meta):
-        fields=ProductSerializers.Meta.fields + ['description', 'image']
+        fields = ProductSerializers.Meta.fields + ['description', 'image']
 
 
 class ProductImageSerializer(serializers.ModelSerializer):

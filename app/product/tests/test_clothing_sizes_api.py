@@ -1,7 +1,7 @@
 """
 Test for the sizes API.
 """
-from  decimal import Decimal
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -19,13 +19,16 @@ from product.serializers import ClothingSizeSerializer
 
 CLOTHING_SIZE_URL = reverse('product:clothing_sizes-list')
 
+
 def detail_url(clothing_size_id):
     """Generate and return a clothing_sizes detail URL."""
     return reverse('product:clothing_sizes-detail', args=[clothing_size_id])
 
+
 def create_user(email="test@example.com", password="<PASSWORD>"):
     """Create and return a new user."""
     return get_user_model().objects.create_user(email=email, password=password)
+
 
 class PublicClothingSizeAPITests(TestCase):
     """Test unauthenticated size API access."""
@@ -36,7 +39,6 @@ class PublicClothingSizeAPITests(TestCase):
         """Test that authentication is required."""
         res = self.client.get(CLOTHING_SIZE_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
-
 
 
 class PrivateClothingSizeAPITests(TestCase):
@@ -70,13 +72,12 @@ class PrivateClothingSizeAPITests(TestCase):
         self.assertEqual(res.data[0]['name'], clothing_sizes.name)
         self.assertEqual(res.data[0]['id'], clothing_sizes.id)
 
-
     def test_update_clothing_size(self):
         """Test update size."""
         clothing_sizes = ClothingSize.objects.create(user=self.user, name="L")
 
         payload = {'name': 'XXL'}
-        url=detail_url(clothing_sizes.id)
+        url = detail_url(clothing_sizes.id)
         res = self.client.patch(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -85,7 +86,9 @@ class PrivateClothingSizeAPITests(TestCase):
 
     def test_delete_clothing_size(self):
         """Test delete size."""
-        clothing_sizes = ClothingSize.objects.create(user=self.user, name="tag")
+        clothing_sizes = ClothingSize.objects.create(
+            user=self.user, name="tag"
+        )
         url = detail_url(clothing_sizes.id)
 
         res = self.client.delete(url)
@@ -95,12 +98,12 @@ class PrivateClothingSizeAPITests(TestCase):
         self.assertFalse(sizes.exists())
 
     def test_filter_clothing_size_assigned_product(self):
-        cs1= ClothingSize.objects.create(user=self.user, name="L")
-        cs2= ClothingSize.objects.create(user=self.user, name="XL")
+        cs1 = ClothingSize.objects.create(user=self.user, name="L")
+        cs2 = ClothingSize.objects.create(user=self.user, name="XL")
         product = Product.objects.create(
             user=self.user,
-            title= 'Updated Title',
-            time_minutes = 5,
+            title='Updated Title',
+            time_minutes=5,
             price=Decimal('5.00'),
         )
 

@@ -1,7 +1,7 @@
 """
 Tests for the tags API endpoints.
 """
-from  decimal import Decimal
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -19,6 +19,7 @@ from product.serializers import TagsSerializer
 
 TAGS_URL = reverse('product:tag-list')
 
+
 def detail_url(tag_id):
     """Generate and return a tag detail URL."""
     return reverse('product:tag-detail', args=[tag_id])
@@ -27,6 +28,7 @@ def detail_url(tag_id):
 def create_user(email="test@example.com", password="<PASSWORD>"):
     """Create and return a new user."""
     return get_user_model().objects.create_user(email=email, password=password)
+
 
 class PublicTagsAPITests(TestCase):
     """Test unauthenticated tags API access."""
@@ -37,6 +39,7 @@ class PublicTagsAPITests(TestCase):
         """Test that authentication is required."""
         res = self.client.get(TAGS_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
 class PrivateTagsAPITests(TestCase):
     """Test authenticated tags API access."""
@@ -75,7 +78,7 @@ class PrivateTagsAPITests(TestCase):
         tag = Tag.objects.create(user=self.user, name="tag")
 
         payload = {'name': 'new tag'}
-        url=detail_url(tag.id)
+        url = detail_url(tag.id)
         res = self.client.patch(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -94,12 +97,12 @@ class PrivateTagsAPITests(TestCase):
         self.assertFalse(tags.exists())
 
     def test_filter_tag_assigned_product(self):
-        tag1= Tag.objects.create(user=self.user, name="tag1")
-        tag2= Tag.objects.create(user=self.user, name="tag2")
+        tag1 = Tag.objects.create(user=self.user, name="tag1")
+        tag2 = Tag.objects.create(user=self.user, name="tag2")
         product = Product.objects.create(
             user=self.user,
-            title= 'tag',
-            time_minutes = 1,
+            title='tag',
+            time_minutes=1,
             price=Decimal('1.00'),
         )
 
@@ -136,7 +139,3 @@ class PrivateTagsAPITests(TestCase):
         res = self.client.get(TAGS_URL, {'assigned_only': 1})
 
         self.assertEqual(len(res.data), 1)
-
-
-
-

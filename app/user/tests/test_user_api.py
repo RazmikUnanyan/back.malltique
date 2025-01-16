@@ -1,23 +1,22 @@
 """
 Tests for the user API.
 """
-from django.test import TestCase  # Importing the module for creating tests in Django.
-from django.contrib.auth import get_user_model  # Importing the function to work with the user model.
-from django.urls import reverse  # Importing the function to get a URL by its name.
+from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.urls import reverse
 
-from rest_framework.test import APIClient  # Importing the class for testing APIs.
-from rest_framework import status  # Importing HTTP response statuses.
+from rest_framework.test import APIClient
+from rest_framework import status
 
-# Define URLs for creating a user, obtaining a token, and accessing the user profile.
 CREAT_USER_URL = reverse('user:create')
 TOKEN_URL = reverse('user:token')
 ME_URL = reverse('user:me')
 
-# Helper function to create a user.
+
 def create_user(**params):
     return get_user_model().objects.create_user(**params)
 
-# Tests for public requests to the user API.
+
 class PublicUserApiTests(TestCase):
 
     def setUp(self):
@@ -27,16 +26,16 @@ class PublicUserApiTests(TestCase):
     def test_create_user_success(self):
         # Test for successful user creation.
         payload = {
-            'email': 'text@exaple.com',  # Input data: email, password, and name.
+            'email': 'text@exaple.com',
             'password': 'tesdtpass343e',
             'name': 'Test Name',
         }
-        res = self.client.post(CREAT_USER_URL, payload)  # Send a request to create a user.
+        res = self.client.post(CREAT_USER_URL, payload)
 
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)  # Verify successful creation status.
-        user = get_user_model().objects.get(email=payload['email'])  # Check that the user was created.
-        self.assertTrue(user.check_password(payload['password']))  # Ensure the password was set correctly.
-        self.assertNotIn('password', res.data)  # Ensure the password is not returned in the response.
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        user = get_user_model().objects.get(email=payload['email'])
+        self.assertTrue(user.check_password(payload['password']))
+        self.assertNotIn('password', res.data)
 
     def test_user_with_email_exists_error(self):
         # Test for error when trying to create a user with an existing email.
@@ -46,9 +45,9 @@ class PublicUserApiTests(TestCase):
             'name': 'Test Name',
         }
         create_user(**payload)  # Create a user.
-        res = self.client.post(CREAT_USER_URL, payload)  # Try to create the user again.
+        res = self.client.post(CREAT_USER_URL, payload)
 
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)  # Verify that an error was returned.
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_password_to_short_error(self):
         """Test for an error if the password is shorter than 5 characters."""
@@ -57,10 +56,12 @@ class PublicUserApiTests(TestCase):
             'password': 'ss',  # Specify a too-short password.
             'name': 'Test Name',
         }
-        res = self.client.post(CREAT_USER_URL, payload)  # Try to create a user.
+        res = self.client.post(CREAT_USER_URL, payload)
 
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)  # Verify that an error was returned.
-        user_exists = get_user_model().objects.filter(email=payload['email']).exists()  # Ensure the user was not created.
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        user_exists = get_user_model().objects.filter(
+            email=payload['email']
+        ).exists()
         self.assertFalse(user_exists)
 
     def test_create_token_for_user(self):
@@ -73,44 +74,44 @@ class PublicUserApiTests(TestCase):
         create_user(**user_details)  # Create a user.
 
         payload = {
-            'password': user_details['password'],  # Provide correct credentials.
+            'password': user_details['password'],
             'email': user_details['email'],
         }
-        res = self.client.post(TOKEN_URL, payload)  # Attempt to obtain a token.
-        self.assertIn('token', res.data)  # Ensure the token is present in the response.
+        res = self.client.post(TOKEN_URL, payload)
+        self.assertIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_token_bad_credentials(self):
         """Test for error with incorrect credentials."""
-        create_user(email="test@example.com", password="pass")  # Create a user.
+        create_user(email="test@example.com", password="pass")
 
         payload = {
             'email': "test@example.com",
-            'password': "123pass",  # Provide incorrect password.
+            'password': "123pass",
         }
-        res = self.client.post(TOKEN_URL, payload)  # Attempt to obtain a token.
+        res = self.client.post(TOKEN_URL, payload)
 
-        self.assertNotIn('token', res.data)  # Ensure the token is not present in the response.
+        self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_creat_token_blank_password(self):
         # Test for error with an empty password.
-        create_user(email="test@example.com", password="pass")  # Create a user.
+        create_user(email="test@example.com", password="pass")
 
         payload = {
             'email': "test@example.com",
             'password': "",  # Provide an empty password.
         }
-        res = self.client.post(TOKEN_URL, payload)  # Attempt to obtain a token.
+        res = self.client.post(TOKEN_URL, payload)
 
-        self.assertNotIn('token', res.data)  # Ensure the token is not present.
+        self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_retrieve_user_unauthorized(self):
-        # Test for error when trying to access the profile without authorization.
-        res = self.client.get(ME_URL)  # Attempt to get profile data.
+        res = self.client.get(ME_URL)
 
-        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)  # Verify that an error was returned.
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
 # Tests for authorized requests to the user API.
 class PrivateUserApiTest(TestCase):
@@ -129,17 +130,17 @@ class PrivateUserApiTest(TestCase):
         # Test for successful profile retrieval.
         res = self.client.get(ME_URL)
 
-        self.assertEqual(res.status_code, status.HTTP_200_OK)  # Verify successful status.
-        self.assertEqual(res.data, {  # Verify that the profile data is correct.
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, {
             'name': self.user.name,
             'email': self.user.email,
         })
 
     def test_post_me_not_allowed(self):
         """Test that POST requests are not allowed for this endpoint."""
-        res = self.client.post(ME_URL, {})  # Attempt to send a POST request.
+        res = self.client.post(ME_URL, {})
 
-        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)  # Verify that the method is not allowed.
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_update_user_profile(self):
         # Test for successful user profile update.
@@ -147,9 +148,9 @@ class PrivateUserApiTest(TestCase):
             'name': 'Update name',  # New name.
             'password': 'Update pass',  # New password.
         }
-        res = self.client.patch(ME_URL, payload)  # Send a PATCH request to update the profile.
+        res = self.client.patch(ME_URL, payload)
 
-        self.user.refresh_from_db()  # Refresh the user data from the database.
-        self.assertEqual(self.user.name, payload['name'])  # Verify the name was updated.
-        self.assertTrue(self.user.check_password(payload['password']))  # Verify the password was updated.
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.name, payload['name'])
+        self.assertTrue(self.user.check_password(payload['password']))
         self.assertEqual(res.status_code, status.HTTP_200_OK)

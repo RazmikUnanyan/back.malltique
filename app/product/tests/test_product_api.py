@@ -26,7 +26,6 @@ from product.serializers import (
     ProductDetailSerializers,
 )
 
-from user.tests.test_user_api import create_user
 
 def detail_url(product_id):
     """Generate and return a product detail URL."""
@@ -58,6 +57,7 @@ def create_user(**params):
     """Create and return a new user."""
     return get_user_model().objects.create_user(**params)
 
+
 class PublicProductAPITests(TestCase):
     """Test UNAUTHORIZED req"""
 
@@ -69,6 +69,7 @@ class PublicProductAPITests(TestCase):
         """Test that authentication is required to access products."""
         res = self.client.get(PRODUCT_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
 
 class PrivateProductAPITests(TestCase):
     """Test AUTHENTICATED API requests."""
@@ -93,7 +94,10 @@ class PrivateProductAPITests(TestCase):
 
     def test_product_limited_to_user(self):
         """Test that products are limited to the authenticated user."""
-        other_user = create_user(email='other@example.com', password='testpass')
+        other_user = create_user(
+            email='other@example.com',
+            password='testpass'
+        )
         create_product(user=other_user)
         create_product(user=self.user)
 
@@ -131,7 +135,11 @@ class PrivateProductAPITests(TestCase):
 
     def test_partial_update(self):
         """Test partially updating a product."""
-        product = create_product(user=self.user, title='Original Title', link='https://example.com')
+        product = create_product(
+            user=self.user,
+            title='Original Title',
+            link='https://example.com'
+        )
         payload = {'title': 'Updated Title'}
         url = detail_url(product.id)
         res = self.client.patch(url, payload)
@@ -142,7 +150,11 @@ class PrivateProductAPITests(TestCase):
 
     def test_full_update(self):
         """Test updating a product with PUT."""
-        product = create_product(user=self.user, title='Original Title', link='https://example.com')
+        product = create_product(
+            user=self.user,
+            title='Original Title',
+            link='https://example.com'
+        )
         payload = {
             'title': 'Updated Title',
             'link': 'https://example.com/updated',
@@ -160,7 +172,10 @@ class PrivateProductAPITests(TestCase):
 
     def test_update_user_returns_error(self):
         """Test changing the product user results in an error."""
-        new_user = create_user(email='newuser@example.com', password='testpass')
+        new_user = create_user(
+            email='newuser@example.com',
+            password='testpass'
+        )
         product = create_product(user=self.user)
         payload = {'user': new_user.id}
         url = detail_url(product.id)
@@ -179,8 +194,11 @@ class PrivateProductAPITests(TestCase):
         self.assertFalse(Product.objects.filter(id=product.id).exists())
 
     def test_delete_other_user_product(self):
-        """Test attempting to delete another user's product results in an error."""
-        other_user = create_user(email='other@example.com', password='testpass')
+        """Test attempting to delete."""
+        other_user = create_user(
+            email='other@example.com',
+            password='testpass'
+        )
         product = create_product(user=other_user)
         url = detail_url(product.id)
         res = self.client.delete(url)
@@ -210,7 +228,10 @@ class PrivateProductAPITests(TestCase):
         product = products[0]
         self.assertEqual(product.tags.count(), 2)
         for tag in payload['tags']:
-            exists = product.tags.filter(name=tag['name'], user=self.user).exists()
+            exists = product.tags.filter(
+                name=tag['name'],
+                user=self.user
+            ).exists()
             self.assertTrue(exists)
 
     def test_create_product_existing_tags(self):
@@ -232,7 +253,10 @@ class PrivateProductAPITests(TestCase):
         self.assertEqual(product.tags.count(), 2)
         self.assertIn(tag_indian, product.tags.all())
         for tag in payload['tags']:
-            exists = product.tags.filter(name=tag['name'], user=self.user).exists()
+            exists = product.tags.filter(
+                name=tag['name'],
+                user=self.user
+            ).exists()
             self.assertTrue(exists)
 
     def test_create_tags_on_update(self):
@@ -299,7 +323,9 @@ class PrivateProductAPITests(TestCase):
             self.assertTrue(exists)
 
     def test_create_product_existing_clothing_size(self):
-        clothing_size_xl = ClothingSize.objects.create(user=self.user, name='XL')
+        clothing_size_xl = ClothingSize.objects.create(
+            user=self.user, name='XL'
+        )
         payload = {
             'title': 'Updated Title',
             'link': 'https://example.com/updated',
@@ -333,7 +359,9 @@ class PrivateProductAPITests(TestCase):
         res = self.client.patch(url, payload, format='json')
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        new_clothing_size = ClothingSize.objects.get(user=self.user, name='XXL')
+        new_clothing_size = ClothingSize.objects.get(
+            user=self.user, name='XXL'
+        )
         self.assertIn(new_clothing_size, product.clothing_sizes.all())
 
     def test_update_product_assign_clothing_size(self):
@@ -388,14 +416,21 @@ class PrivateProductAPITests(TestCase):
     def test_filter_by_clothing_sizes(self):
         p1 = create_product(user=self.user, title='1')
         p2 = create_product(user=self.user, title='2')
-        clothing_sizes1 = ClothingSize.objects.create(user=self.user, name='T1')
-        clothing_sizes2 = ClothingSize.objects.create(user=self.user, name='T2')
+        clothing_sizes1 = ClothingSize.objects.create(
+            user=self.user, name='T1'
+        )
+        clothing_sizes2 = ClothingSize.objects.create(
+            user=self.user, name='T2'
+        )
 
         p1.clothing_sizes.add(clothing_sizes1)
         p2.clothing_sizes.add(clothing_sizes2)
         p3 = create_product(user=self.user, title='3')
 
-        params = {'clothing_sizes': f'{clothing_sizes1.id}, {clothing_sizes2.id}'}
+        params = {
+            'clothing_sizes':
+                f'{clothing_sizes1.id}, {clothing_sizes2.id}'
+        }
         res = self.client.get(PRODUCT_URL, params)
 
         s1 = ProductSerializers(p1)
@@ -405,7 +440,6 @@ class PrivateProductAPITests(TestCase):
         self.assertIn(s1.data, res.data)
         self.assertIn(s2.data, res.data)
         self.assertNotIn(s3.data, res.data)
-
 
 
 class ImageUploadTest(TestCase):
@@ -443,6 +477,3 @@ class ImageUploadTest(TestCase):
         res = self.client.post(url, payload, format='multipart')
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-
-
