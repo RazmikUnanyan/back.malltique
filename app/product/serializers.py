@@ -1,7 +1,7 @@
 """
 Serializers for product API.
 """
-from itertools import product
+
 
 from rest_framework import serializers
 
@@ -11,19 +11,21 @@ from core.models import (
     ClothingSize
 )
 
+
 class ClothingSizeSerializer(serializers.ModelSerializer):
     """Serializer for sizes"""
     class Meta:
-        model=ClothingSize
-        fields=['id', 'name']
-        read_only_fields=['id']
+        model = ClothingSize
+        fields = ['id', 'name']
+        read_only_fields = ['id']
+
 
 class TagsSerializer(serializers.ModelSerializer):
     """Serializer for tags"""
     class Meta:
-        model=Tag
-        fields=['id', 'name']
-        read_only_fields=['id']
+        model = Tag
+        fields = ['id', 'name']
+        read_only_fields = ['id']
 
 
 class ProductSerializers(serializers.ModelSerializer):
@@ -32,9 +34,12 @@ class ProductSerializers(serializers.ModelSerializer):
     clothing_sizes = ClothingSizeSerializer(many=True, required=False)
 
     class Meta:
-        model=Product
-        fields=['id', 'title', 'time_minutes', 'price', 'link', 'tags', 'clothing_sizes', 'image']
-        read_only_fields=['id']
+        model = Product
+        fields = [
+            'id', 'title', 'time_minutes',
+            'price', 'link', 'tags', 'clothing_sizes', 'image'
+        ]
+        read_only_fields = ['id']
 
     def _get_or_create_tags(self, tags, product):
         """handle creating or getting tags."""
@@ -77,11 +82,7 @@ class ProductSerializers(serializers.ModelSerializer):
             setattr(instance, attr, value)
 
         instance.save()
-        return  instance
-
-
-
-
+        return instance
 
 
 class ProductDetailSerializers(ProductSerializers):
@@ -98,5 +99,3 @@ class ProductImageSerializer(serializers.ModelSerializer):
         fields = ['id', 'image']
         read_only_fields = ['id']
         extra_kwargs = {'image': {'required': 'True'}}
-
-

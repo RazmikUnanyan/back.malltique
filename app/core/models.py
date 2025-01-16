@@ -1,15 +1,15 @@
 """
 Database models.
 """
-import uuid
 import os
+import uuid
 
-from django.conf import settings  # Import project settings for Django.
-from django.db import models  # Import base module for working with models.
-from django.contrib.auth.models import (  # Import base classes for working with users.
-    AbstractBaseUser,  # Base class for custom user models.
-    BaseUserManager,  # Manager for handling user objects.
-    PermissionsMixin,  # Adds support for permissions and groups.
+from django.conf import settings
+from django.db import models
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
 )
 
 
@@ -17,74 +17,72 @@ def product_image_file_path(instance, filename):
     """Generate file path for new product image."""
     ext = os.path.splitext(filename)[1]
     filename = f'{uuid.uuid4()}{ext}'
-
     return os.path.join('uploads', 'product', filename)
 
-class UserManager(BaseUserManager):  # Custom manager for the User model.
+
+class UserManager(BaseUserManager):
     """Manager for handling user objects."""
 
     def create_user(self, email, password=None, **extra_fields):
         """Creates, saves, and returns a new user."""
-        if not email:  # Check if an email is provided.
-            raise ValueError('A user must have an email address.')  # Raise an error if email is missing.
-        user = self.model(email=self.normalize_email(email), **extra_fields)  # Create a model instance with a normalized email.
-        user.set_password(password)  # Set the user's password.
-        user.save(using=self._db)  # Save the user to the database.
-
-        return user  # Return the created user.
+        if not email:
+            raise ValueError('A user must have an email address.')
+        user = self.model(email=self.normalize_email(email), **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
     def create_superuser(self, email, password):
         """Creates and returns a superuser."""
-        user = self.create_user(email, password)  # Create a regular user.
-        user.is_staff = True  # Grant staff status (admin access).
-        user.is_superuser = True  # Grant superuser status.
-        user.save(using=self._db)  # Save changes to the database.
+        user = self.create_user(email, password)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
 
-        return user  # Return the superuser.
 
-
-class User(AbstractBaseUser, PermissionsMixin):  # Create a custom user model inheriting the base user class.
+class User(AbstractBaseUser, PermissionsMixin):
     """User model in the system."""
-    email = models.EmailField(max_length=255, unique=True)  # Email field, required and unique.
-    name = models.CharField(max_length=255)  # Name field for the user.
-    is_active = models.BooleanField(default=True)  # User active status.
-    is_staff = models.BooleanField(default=False)  # Determines if the user has staff privileges (admin access).
+    email = models.EmailField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
 
-    objects = UserManager()  # Attach the custom user manager.
+    objects = UserManager()
 
-    USERNAME_FIELD = 'email'  # Specify that email is used for authentication.
+    USERNAME_FIELD = 'email'
 
 
-class Product(models.Model):  # Model for storing product data.
+class Product(models.Model):
     """Product objects."""
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,  # Link the product to a user through the custom user model.
-        on_delete=models.CASCADE,  # Delete all associated products if the user is deleted.
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
     )
-    title = models.CharField(max_length=100)  # Product title.
-    description = models.TextField(blank=True)  # Product description, optional field.
-    time_minutes = models.IntegerField()  # Preparation time in minutes.
-    price = models.DecimalField(max_digits=5, decimal_places=2)  # Product price, accurate to two decimal places.
-    link = models.CharField(max_length=100, blank=True)  # Link to the product, optional field.
-    tags = models.ManyToManyField('Tag')  # Many-to-many relationship with the Tag model.
-    clothing_sizes = models.ManyToManyField('ClothingSize')  # Many-to-many relationship with the Size model.
+    title = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    time_minutes = models.IntegerField()
+    price = models.DecimalField(max_digits=5, decimal_places=2)
+    link = models.CharField(max_length=100, blank=True)
+    tags = models.ManyToManyField('Tag')
+    clothing_sizes = models.ManyToManyField('ClothingSize')
     image = models.ImageField(null=True, upload_to=product_image_file_path)
 
     def __str__(self):
         """Returns the string representation of the object (product title)."""
-        return self.title  # Display the product title.
+        return self.title
 
 
-class Tag(models.Model):  # Model for tags associated with products.
+class Tag(models.Model):
     """Tag objects."""
-    name = models.CharField(max_length=225)  # Tag name.
+    name = models.CharField(max_length=225)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,  # Link the tag to a user through the custom user model.
-        on_delete=models.CASCADE,  # Delete all associated tags if the user is deleted.
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):
-        return self.name  # Display the tag name.
+        return self.name
 
 
 class ClothingSize(models.Model):

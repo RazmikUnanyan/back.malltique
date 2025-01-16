@@ -1,21 +1,19 @@
 """
 Test for product APIs.
 """
-from cgitb import reset
-from decimal import Decimal  # Импортируем модуль для работы с числами с фиксированной точностью.
+from decimal import Decimal
 import tempfile
 import os
-from fileinput import filename
 
 from PIL import Image
 
-from django.contrib.auth import get_user_model  # Импорт функции для получения текущей модели пользователя.
+from django.contrib.auth import get_user_model
 
-from django.test import TestCase  # Импорт класса для создания тестов.
-from django.urls import reverse  # Импорт функции для генерации URL-адресов.
+from django.test import TestCase
+from django.urls import reverse
 
-from rest_framework import status  # Импортируем статусы HTTP из DRF.
-from rest_framework.test import APIClient  # Импорт клиента для тестирования API.
+from rest_framework import status
+from rest_framework.test import APIClient
 
 from core.models import (
     Product,
@@ -26,32 +24,35 @@ from core.models import (
 from product.serializers import (
     ProductSerializers,
     ProductDetailSerializers,
-)  # Импорт сериализаторов для продуктов.
+)
 
-from user.tests.test_user_api import create_user  # Импорт функции для создания пользователя из тестов пользователя.
+from user.tests.test_user_api import create_user
 
 def detail_url(product_id):
     """Generate and return a product detail URL."""
     return reverse('product:product-detail', args=[product_id])
 
-# Создаем URL для списка продуктов с помощью функции reverse.
+
 PRODUCT_URL = reverse('product:product-list')
+
 
 def image_upload_url(product_id):
     """Generate and return a product image URL."""
     return reverse('product:product-upload-image', args=[product_id])
 
+
 def create_product(user, **params):
     """Create and return a new product."""
     defaults = {
-        'title': 'title',  # Заголовок продукта.
-        'description': 'description',  # Описание продукта.
-        'price': "3.42",  # Цена продукта.
-        'link': '#',  # Ссылка на продукт.
-        'time_minutes': 2,  # Время подготовки продукта в минутах.
+        'title': 'title',
+        'description': 'description',
+        'price': "3.42",
+        'link': '#',
+        'time_minutes': 2,
     }
     defaults.update(params)
     return Product.objects.create(user=user, **defaults)
+
 
 def create_user(**params):
     """Create and return a new user."""
@@ -423,29 +424,18 @@ class ImageUploadTest(TestCase):
         # Создаем URL для загрузки изображения, связанный с продуктом по его ID
         url = image_upload_url(self.product.id)
 
-        # Создаем временный файл с расширением .jpg для тестового изображения
         with tempfile.NamedTemporaryFile(suffix='.jpg') as image_file:
-            # Создаем простое изображение 10x10 пикселей в формате RGB
             img = Image.new('RGB', (10, 10))
-            # Сохраняем изображение во временный файл в формате JPEG
             img.save(image_file, format='JPEG')
-            # Перемещаем указатель файла в начало для последующего чтения
             image_file.seek(0)
-            # Формируем payload с изображением для отправки
             payload = {'image': image_file}
-            # Отправляем POST-запрос на сервер с изображением в формате multipart
             res = self.client.post(url, payload, format='multipart')
 
-        # Обновляем объект продукта из базы данных
         self.product.refresh_from_db()
 
-        # Проверяем, что сервер вернул статус 200 OK
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        # Убеждаемся, что в ответе присутствует ключ 'image'
         self.assertIn('image', res.data)
-        # Проверяем, что файл изображения был успешно сохранен по указанному пути
         self.assertTrue(os.path.exists(self.product.image.path))
-
 
     def test_upload_image_bad_request(self):
         url = image_upload_url(self.product.id)
