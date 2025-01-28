@@ -17,7 +17,10 @@ def product_image_file_path(instance, filename):
     """Generate file path for new product image."""
     ext = os.path.splitext(filename)[1]
     filename = f'{uuid.uuid4()}{ext}'
-    return os.path.join('uploads', 'product', filename)
+    return os.path.join(
+        'uploads',
+        'product',
+    filename)
 
 
 class UserManager(BaseUserManager):
