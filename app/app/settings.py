@@ -156,6 +156,6 @@ SPECTACULAR_SETTINGS = {
 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React-приложение
-    "https://yourfrontend.com",  # Продакшен
+    "http://localhost:3000",
+    # "http://ec2-18-218-203-195.us-east-2.compute.amazonaws.com/",
 ]

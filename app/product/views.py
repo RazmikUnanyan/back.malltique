@@ -49,9 +49,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         queryset = self.queryset
 
 
-        return queryset.filter(
-            user=self.request.user
-        ).order_by('-id').distinct()
+        return queryset.distinct()
 
     def get_serializer_class(self):
         """Return the serializer class for request."""
