@@ -61,12 +61,16 @@ class Product(models.Model):
     )
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    time_minutes = models.IntegerField()
-    price = models.DecimalField(max_digits=5, decimal_places=2)
-    link = models.CharField(max_length=100, blank=True)
-    tags = models.ManyToManyField('Tag')
-    clothing_sizes = models.ManyToManyField('ClothingSize')
+    # time_minutes = models.IntegerField()
+    # price = models.DecimalField(max_digits=5, decimal_places=2)
+    youtube = models.TextField(blank=True)
+    spotify = models.TextField(blank=True)
+    # tags = models.ManyToManyField('Tag')
+    # clothing_sizes = models.ManyToManyField('ClothingSize')
     image = models.ImageField(null=True, upload_to=product_image_file_path)
+
+    class Meta:
+        verbose_name = "Episode"
 
     def __str__(self):
         """Returns the string representation of the object (product title)."""
@@ -95,3 +99,18 @@ class ClothingSize(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Episode(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    title = models.CharField(max_length=100)
+    link_youtube = models.TextField()
+    link_spotify = models.TextField()
+    description = models.TextField(blank=True)
+    image = models.ImageField(null=True, upload_to=product_image_file_path)
+
+    def __str__(self):
+        return self.title

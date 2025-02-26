@@ -13,11 +13,6 @@ from product import views
 
 router = DefaultRouter()
 router.register('product', views.ProductViewSet)
-router.register('tag', views.TagViewSet)
-router.register('clothing_sizes',
-                views.ClothingSizeViewSet,
-                basename='clothing_sizes'
-                )
 
 app_name = 'product'
 

@@ -15,38 +15,25 @@ from rest_framework import (
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 
 from core.models import (
-    Product,
-    Tag,
-    ClothingSize
+    Product
 )
 from product import serializers
 
 
-@extend_schema_view(
-    list=extend_schema(
-        parameters=[
-            OpenApiParameter(
-                'tags',
-                OpenApiTypes.STR,
-                description="Comma separated list of IDs to filter"
-            ),
-            OpenApiParameter(
-                'clothing_sizes',
-                OpenApiTypes.STR,
-                description="IDs to filter"
-            )
-        ]
-    )
-)
+# @extend_schema_view(
+#     list=extend_schema(
+#         parameters=[]
+#     )
+# )
 class ProductViewSet(viewsets.ModelViewSet):
     """Views for manage product APIs."""
     serializer_class = serializers.ProductDetailSerializers
     queryset = Product.objects.all()
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+   # authentication_classes = [TokenAuthentication]
+    permission_classes = [AllowAny]
 
     def _params_to_ints(self, qs):
         """Convert a list strings to integers"""
@@ -55,21 +42,12 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve products for the authenticated user."""
         # Get the 'tags' query parameter from the request.
-        tags = self.request.query_params.get('tags')
-        # Get the 'clothing_sizes' query parameter from the request.
-        clothing_sizes = self.request.query_params.get('clothing_sizes')
-        # Initialize the queryset with the default queryset for the view.
+        # tags = self.request.query_params.get('tags')
+        # # Get the 'clothing_sizes' query parameter from the request.
+        # clothing_sizes = self.request.query_params.get('clothing_sizes')
+        # # Initialize the queryset with the default queryset for the view.
         queryset = self.queryset
 
-        if tags:
-            tag_ids = self._params_to_ints(tags)
-            queryset = queryset.filter(tags__id__in=tag_ids)
-
-        if clothing_sizes:
-            clothing_sizes_ids = self._params_to_ints(clothing_sizes)
-            queryset = queryset.filter(
-                clothing_sizes__id__in=clothing_sizes_ids
-            )
 
         return queryset.filter(
             user=self.request.user
@@ -101,17 +79,17 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@extend_schema_view(
-    list=extend_schema(
-        parameters=[
-            OpenApiParameter(
-                'assigned_only',
-                OpenApiTypes.INT, enum=[0, 1],
-                description='Filter by items assigned to product',
-            )
-        ]
-    )
-)
+# @extend_schema_view(
+#     list=extend_schema(
+#         parameters=[
+#             OpenApiParameter(
+#                 'assigned_only',
+#                 OpenApiTypes.INT, enum=[0, 1],
+#                 description='Filter by items assigned to product',
+#             )
+#         ]
+#     )
+# )
 class BaseProductAttrViewSet(
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
@@ -119,8 +97,8 @@ class BaseProductAttrViewSet(
     viewsets.GenericViewSet
 ):
     """Base viewset for product attributes."""
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [TokenAuthentication]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         """Filter queryset for authenticated user"""
@@ -134,15 +112,3 @@ class BaseProductAttrViewSet(
         return queryset.filter(
             user=self.request.user
         ).order_by('-name').distinct()
-
-
-class TagViewSet(BaseProductAttrViewSet):
-    """Manage tags in the database."""
-    serializer_class = serializers.TagsSerializer
-    queryset = Tag.objects.all()
-
-
-class ClothingSizeViewSet(BaseProductAttrViewSet):
-    """Manage sizes in the database."""
-    serializer_class = serializers.ClothingSizeSerializer
-    queryset = ClothingSize.objects.all()
