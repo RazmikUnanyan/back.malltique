@@ -159,3 +159,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://runnerviewwithkat.com",
 ]
+
+SECURE_SSL_REDIRECT = True  # Включает редирект HTTP → HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Для работы с прокси (nginx)
