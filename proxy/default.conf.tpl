@@ -1,7 +1,5 @@
 server {
     listen ${LISTEN_PORT};
-    server_name ec2-18-218-203-195.us-east-2.compute.amazonaws.com;
-    return 301 https://$host$request_uri;
 
     location /static {
         alias /vol/static;
