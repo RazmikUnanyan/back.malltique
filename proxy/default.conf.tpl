@@ -1,22 +1,15 @@
 server {
     listen ${LISTEN_PORT};
+    server_name ec2-18-218-203-195.us-east-2.compute.amazonaws.com;
+    return 301 https://$host$request_uri;
 
     location /static {
         alias /vol/static;
     }
 
-    location /api/ {
-        proxy_pass http://${APP_HOST}:${APP_PORT}/api/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        client_max_body_size 500M;
-    }
-
     location / {
         uwsgi_pass              ${APP_HOST}:${APP_PORT};
         include                 /etc/nginx/uwsgi_params;
-        client_max_body_size    10M;
+        client_max_body_size    500M;
     }
 }
