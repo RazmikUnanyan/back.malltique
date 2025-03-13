@@ -42,6 +42,7 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
+
 admin.site.site_header = "Runnerview with Kat admin"
 
 admin.site.register(models.User, UserAdmin)

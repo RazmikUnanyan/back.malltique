@@ -1,12 +1,6 @@
 """
 View for product.
 """
-from drf_spectacular.utils import (
-    extend_schema_view,
-    extend_schema,
-    OpenApiParameter,
-    OpenApiTypes,
-)
 from rest_framework import (
     viewsets,
     mixins,
@@ -14,7 +8,6 @@ from rest_framework import (
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny
 
 from core.models import (
@@ -32,7 +25,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     """Views for manage product APIs."""
     serializer_class = serializers.ProductDetailSerializers
     queryset = Product.objects.all()
-   # authentication_classes = [TokenAuthentication]
     permission_classes = [AllowAny]
 
     def _params_to_ints(self, qs):
@@ -47,7 +39,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         # clothing_sizes = self.request.query_params.get('clothing_sizes')
         # # Initialize the queryset with the default queryset for the view.
         queryset = self.queryset
-
 
         return queryset.distinct()
 

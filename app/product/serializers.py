@@ -40,23 +40,6 @@ class ProductSerializers(serializers.ModelSerializer):
         ]
         read_only_fields = ['id']
 
-    # def _get_or_create_tags(self, tags, product):
-    #     """handle creating or getting tags."""
-    #     auth_user = self.context['request'].user
-    #     for tag in tags:
-    #         tag_obj, created = Tag.objects.get_or_create(user=auth_user, **tag)
-    #         product.tags.add(tag_obj)
-    #
-    # def _get_or_create_clothing_sizes(self, clothing_sizes, product):
-    #     """handle creating or getting clothing_size."""
-    #     auth_user = self.context['request'].user
-    #     for clothing_size in clothing_sizes:
-    #         clothing_size_obj, created = ClothingSize.objects.get_or_create(
-    #             user=auth_user,
-    #             **clothing_size
-    #         )
-    #         product.clothing_sizes.add(clothing_size_obj)
-
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
         clothing_sizes = validated_data.pop('clothing_sizes', [])
