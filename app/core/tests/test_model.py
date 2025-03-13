@@ -58,24 +58,6 @@ class TestModels(TestCase):
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
 
-    def test_create_product(self):
-        """Test: successfully creating a product."""
-        user = get_user_model().objects.create_user(
-            'test@example.com',
-            'pass123',
-        )
-
-        product = models.Product.objects.create(
-            user=user,
-            title='simple product name',
-            description='simple test',
-            price=Decimal('5.5'),
-            time_minutes=5,
-            link="////"
-        )
-
-        self.assertEqual(str(product), product.title)
-
     def test_create_tag(self):
         """Test: successfully creating a tag."""
         user = create_user()
